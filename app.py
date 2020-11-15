@@ -1,8 +1,32 @@
 import json
+import os
 
 from flask import Flask, render_template, abort, request
+from flask_wtf import FlaskForm
+from wtforms import StringField, RadioField, SubmitField
+from wtforms.validators import InputRequired
+from flask_wtf.csrf import CSRFProtect
+
 
 app = Flask(__name__)
+csrf = CSRFProtect(app)
+
+SECRET_KEY = os.urandom(43)
+app.config['SECRET_KEY'] = SECRET_KEY
+
+
+class RequestForm(FlaskForm):
+    name = StringField('Вас зовут', validators=[InputRequired(message='Нужно ввести свое имя')])
+    phone = StringField('Ваш телефон', validators=[InputRequired(message='Введите номер телефона')])
+    goal = RadioField('Какая цель занятий?', choices=[("goal1", "Для путешествий"),
+                                                      ("goal2", "Для школы"),
+                                                      ("goal3", "Для работы"),
+                                                      ("goal4", "Для переезда")])
+    time = RadioField('Сколько времени есть?', choices=[("key1", "1-2 часа в неделю"),
+                                                        ("key2", "3-5 часов в неделю"),
+                                                        ("key3", "5-7 часов в неделю"),
+                                                        ("key4", "7-10 часов в неделю")])
+    submit = SubmitField('Найдите мне преподавателя')
 
 
 @app.route('/')
@@ -44,19 +68,39 @@ def render_booking(id, day, time):
                            time=time)
 
 
-@app.route('/booking_done/')
+@app.route('/booking_done/', methods=['GET', 'POST'])
 def render_booking_done():
-    clientName = request.form.get('clientName')
-    clientPhone = request.form.get('clientPhone')
-    clientTeacher = request.form.get('clientTeacher')
-    clientTime = request.form.get('clientTime')
-    clientWeekday = request.form.get('clientWeekday')
+    with open('days.json', 'r') as f:
+        days = json.load(f)
+
+    client_name = request.form.get('clientName')
+    client_phone = request.form.get('clientPhone')
+    client_teacher = request.form.get('clientTeacher')
+    client_time = request.form.get('clientTime')
+    client_weekday = request.form.get('clientWeekday')
 
     return render_template('booking_done.html',
-                           teacher=teacher[0],
+                           name=client_name,
+                           phone=client_phone,
                            days=days,
-                           day=day,
-                           time=time)
+                           day=client_weekday,
+                           time=client_time,
+                           teacher=client_teacher)
+
+
+@app.route('/request/')
+def render_requiest():
+    form = RequestForm()
+    with open('goals.json', 'r') as f:
+        goals = json.load(f)
+    return render_template('request.html',
+                           form=form,
+                           goals=goals)
+
+
+@app.route('/request_done/', methods=['GET', 'POST'])
+def render_requiest_done():
+    return render_template('request_done.html')
 
 
 if __name__ == '__main__':
