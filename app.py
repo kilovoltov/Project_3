@@ -21,10 +21,10 @@ class RequestForm(FlaskForm):
     name = StringField('Вас зовут', validators=[InputRequired(message='Нужно ввести свое имя')])
     phone = StringField('Ваш телефон', validators=[InputRequired(message='Введите номер телефона')])
     goal = RadioField('Какая цель занятий?', choices=[(key, value) for key, value in goals.items()])
-    time = RadioField('Сколько времени есть?', choices=[("key1", "1-2 часа в неделю"),
-                                                        ("key2", "3-5 часов в неделю"),
-                                                        ("key3", "5-7 часов в неделю"),
-                                                        ("key4", "7-10 часов в неделю")])
+    time = RadioField('Сколько времени есть?', choices=[("1-2 часа в неделю", "1-2 часа в неделю"),
+                                                        ("3-5 часов в неделю", "3-5 часов в неделю"),
+                                                        ("5-7 часов в неделю", "5-7 часов в неделю"),
+                                                        ("7-10 часов в неделю", "7-10 часов в неделю")])
     submit = SubmitField('Найдите мне преподавателя')
 
 
@@ -99,7 +99,19 @@ def render_requiest():
 
 @app.route('/request_done/', methods=['GET', 'POST'])
 def render_requiest_done():
-    return render_template('request_done.html')
+    with open('goals.json', 'r') as f:
+        goals = json.load(f)
+    form = RequestForm()
+    name = form.name.data
+    phone = form.phone.data
+    goal = form.goal.data
+    time = form.time.data
+    return render_template('request_done.html',
+                           name=name,
+                           phone=phone,
+                           goals=goals,
+                           goal=goal,
+                           time=time)
 
 
 if __name__ == '__main__':
