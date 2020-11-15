@@ -20,9 +20,7 @@ class RequestForm(FlaskForm):
         goals = json.load(f)
     name = StringField('Вас зовут', validators=[InputRequired(message='Нужно ввести свое имя')])
     phone = StringField('Ваш телефон', validators=[InputRequired(message='Введите номер телефона')])
-    goal = RadioField('Какая цель занятий?',
-                      choices=[(key, value) for key, value in goals.items()],
-                      validators=[InputRequired(message='Нужно выбрать цель')])
+    goal = RadioField('Какая цель занятий?', choices=[(key, value) for key, value in goals.items()])
     time = RadioField('Сколько времени есть?', choices=[("key1", "1-2 часа в неделю"),
                                                         ("key2", "3-5 часов в неделю"),
                                                         ("key3", "5-7 часов в неделю"),
