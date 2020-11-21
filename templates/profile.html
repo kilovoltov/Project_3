@@ -19,11 +19,16 @@
               <h4 class="mb-4 mt-5">Записаться на пробный урок</h4>
                 {% for day, time in teacher.free.items() %}
                     <h6 class="mt-4">{{ days[day] }}</h6>
+                    {% set vars = {'busy_day': True} %}
                     {% for key, value in time.items() %}
                         {% if value %}
+                            {% if vars.update({'busy_day': False}) %} {% endif %}
                             <a href="/booking/{{ teacher.id }}/{{ day }}/{{ key.split(':')[0] }}" class="btn btn-outline-success mr-2 mb-2">{{ key }} свободно</a>
                         {% endif %}
                     {% endfor %}
+                    {% if vars.busy_day %}
+                        <p>Нет свободных уроков</p>
+                    {% endif %}
                 {% endfor %}
             </section>
 
