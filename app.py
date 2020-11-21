@@ -1,5 +1,6 @@
 import json
 import os
+from random import shuffle
 
 from flask import Flask, render_template, abort, request
 from flask_wtf import FlaskForm
@@ -30,7 +31,21 @@ class RequestForm(FlaskForm):
 
 @app.route('/')
 def render_main():
-    return render_template('index.html')
+    with open('teachers.json') as f:
+        teachers = json.load(f)
+        shuffle(teachers)
+
+    with open('goals.json', 'r') as f:
+        goals = json.load(f)
+
+    return render_template('index.html', teachers=teachers[:6], goals=goals)
+
+
+@app.route('/goals/<goal>/')
+def render_goal(goal):
+    with open('teachers.json') as f:
+        teachers = [item for item in json.load(f) if goal in item.get('goals')]
+    return render_template('goal.html', teachers=teachers)
 
 
 @app.route('/profiles/all/')
@@ -39,7 +54,11 @@ def render_all_teachers():
         teachers = json.load(f)
         for teacher in teachers:
             del teacher['free']
-    return render_template('all.html', teachers=teachers)
+
+    with open('goals.json', 'r') as f:
+        goals = json.load(f)
+
+    return render_template('all.html', teachers=teachers, goals=goals)
 
 
 @app.route('/profiles/<int:id>/')
