@@ -2,9 +2,9 @@ import json
 import os
 from random import shuffle
 
-from flask import Flask, render_template, abort, request
+from flask import Flask, render_template, abort
 from flask_wtf import FlaskForm
-from wtforms import StringField, RadioField, SubmitField
+from wtforms import StringField, RadioField, SubmitField, HiddenField
 from wtforms.validators import InputRequired
 from flask_wtf.csrf import CSRFProtect
 
@@ -29,6 +29,17 @@ class RequestForm(FlaskForm):
     submit = SubmitField('Найдите мне преподавателя')
 
 
+class BookingForm(FlaskForm):
+    with open('teachers.json') as f:
+        teachers = json.load(f)
+    client_name = StringField('Вас зовут', validators=[InputRequired(message='Нужно ввести свое имя')])
+    client_phone = StringField('Ваш телефон', validators=[InputRequired(message='Введите номер телефона')])
+    client_teacher = HiddenField('clientTeacher')
+    client_time = HiddenField('clientTime')
+    client_weekday = HiddenField('clientWeekday')
+    submit = SubmitField('Записаться')
+
+
 @app.route('/')
 def render_main():
     with open('teachers.json') as f:
@@ -38,14 +49,17 @@ def render_main():
     with open('goals.json', 'r') as f:
         goals = json.load(f)
 
-    return render_template('index.html', teachers=teachers[:6], goals=goals)
+    return render_template('index.html',
+                           teachers=teachers[:6],
+                           goals=goals)
 
 
 @app.route('/goals/<goal>/')
 def render_goal(goal):
     with open('teachers.json') as f:
         teachers = [item for item in json.load(f) if goal in item.get('goals')]
-    return render_template('goal.html', teachers=teachers)
+    return render_template('goal.html',
+                           teachers=teachers)
 
 
 @app.route('/profiles/all/')
@@ -58,7 +72,9 @@ def render_all_teachers():
     with open('goals.json', 'r') as f:
         goals = json.load(f)
 
-    return render_template('all.html', teachers=teachers, goals=goals)
+    return render_template('all.html',
+                           teachers=teachers,
+                           goals=goals)
 
 
 @app.route('/profiles/<int:id>/')
@@ -88,23 +104,25 @@ def render_booking(id, day, time):
         abort(404)
     with open('days.json', 'r') as f:
         days = json.load(f)
+    form = BookingForm(client_time=str(time) + ':00', client_weekday=day, client_teacher=id)
     return render_template('booking.html',
                            teacher=teacher[0],
                            days=days,
                            day=day,
-                           time=time)
+                           time=time,
+                           form=form)
 
 
 @app.route('/booking_done/', methods=['GET', 'POST'])
 def render_booking_done():
     with open('days.json', 'r') as f:
         days = json.load(f)
-
-    client_name = request.form.get('clientName')
-    client_phone = request.form.get('clientPhone')
-    client_teacher = request.form.get('clientTeacher')
-    client_time = request.form.get('clientTime')
-    client_weekday = request.form.get('clientWeekday')
+    form = BookingForm()
+    client_name = form.client_name.data
+    client_phone = form.client_phone.data
+    client_teacher = form.client_teacher.data
+    client_time = form.client_time.data
+    client_weekday = form.client_weekday.data
 
     return render_template('booking_done.html',
                            name=client_name,
