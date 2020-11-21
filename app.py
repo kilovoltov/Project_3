@@ -33,6 +33,15 @@ def render_main():
     return render_template('index.html')
 
 
+@app.route('/profiles/all/')
+def render_all_teachers():
+    with open('teachers.json') as f:
+        teachers = json.load(f)
+        for teacher in teachers:
+            del teacher['free']
+    return render_template('all.html', teachers=teachers)
+
+
 @app.route('/profiles/<int:id>/')
 def render_profile(id):
     with open('teachers.json', 'r') as f:
@@ -88,7 +97,7 @@ def render_booking_done():
 
 
 @app.route('/request/')
-def render_requiest():
+def render_request():
     form = RequestForm()
     with open('goals.json', 'r') as f:
         goals = json.load(f)
@@ -98,7 +107,7 @@ def render_requiest():
 
 
 @app.route('/request_done/', methods=['GET', 'POST'])
-def render_requiest_done():
+def render_request_done():
     with open('goals.json', 'r') as f:
         goals = json.load(f)
     form = RequestForm()
