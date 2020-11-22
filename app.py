@@ -48,7 +48,6 @@ def render_main():
 
     with open('goals.json', 'r') as f:
         goals = json.load(f)
-
     return render_template('index.html',
                            teachers=teachers[:6],
                            goals=goals)
@@ -56,10 +55,14 @@ def render_main():
 
 @app.route('/goals/<goal>/')
 def render_goal(goal):
+    with open('goals.json') as f:
+        goals = json.load(f)
     with open('teachers.json') as f:
         teachers = [item for item in json.load(f) if goal in item.get('goals')]
     return render_template('goal.html',
-                           teachers=teachers)
+                           teachers=teachers,
+                           goal=goal,
+                           goals=goals)
 
 
 @app.route('/profiles/all/')
@@ -124,6 +127,18 @@ def render_booking_done():
     client_time = form.client_time.data
     client_weekday = form.client_weekday.data
 
+    with open('booking.json', 'r') as f:
+        bookings = json.load(f)
+
+    bookings.append({"name": client_name,
+                     "phone": client_phone,
+                     "teacher": client_teacher,
+                     "day": client_weekday,
+                     "time": client_time})
+
+    with open('booking.json', 'w') as f:
+        json.dump(bookings, f)
+
     return render_template('booking_done.html',
                            name=client_name,
                            phone=client_phone,
@@ -152,6 +167,11 @@ def render_request_done():
     phone = form.phone.data
     goal = form.goal.data
     time = form.time.data
+    with open('request.json', 'r') as f:
+        requests = json.load(f)
+    requests.append({"name": name, "phone": phone, "goal": goal, "time": time.split(' ')[0]})
+    with open('request.json', 'w') as f:
+        json.dump(requests, f)
     return render_template('request_done.html',
                            name=name,
                            phone=phone,
